@@ -1,0 +1,45 @@
+overwrite: true
+schema: "./src/pages/api/typeDefs/index.ts"
+documents:
+  - "./src/lib/queries/userDisplay/userDisplay.query.graphql"
+  - "./src/lib/queries/teams/teams.query.graphql"
+  - "./src/components/EditUser/updateUser.mutation.graphql"
+  - "./src/components/EditTeam/editTeam.mutation.graphql"
+  - "./src/components/EditTrainingSession/editTrainingSession.mutation.graphql"
+  - "./src/components/EditFixture/editFixture.mutation.graphql"
+  - "./src/components/TeamElement/teamMembers.mutation.graphql"
+  - "./src/components/SessionElement/sessionAttendance.mutation.graphql"
+  - "./src/components/SessionElement/deleteSession.mutation.graphql"
+  - "./src/lib/fragments/fragments.graphql"
+generates:
+  src/lib/graphql/types.ts:
+    plugins:
+      - add:
+          content: "/* eslint-disable no-use-before-define,@typescript-eslint/no-explicit-any,@typescript-eslint/naming-convention */"
+      - typescript
+
+  # ./src/graphql/schema.generated.graphql:
+  #   plugins:
+  #     - schema-ast
+  #   config:
+  # includeDirectives: true
+
+  src/lib/graphql/possibleTypes.json:
+    plugins:
+      - fragment-matcher
+  ./src/:
+    preset: near-operation-file
+    presetConfig:
+      extension: .generated.tsx
+      baseTypesPath: lib/graphql/types.ts
+    config:
+      apolloReactClientInstanceImportFrom: "src/lib/apollo"
+    plugins:
+      - add:
+          content: "/* eslint-disable no-use-before-define */"
+      - typescript-operations
+      - "@codeparrotuk/lib-web-graphql-codegen-next"
+    hooks:
+      afterOneFileWrite:
+        - prettier --write
+        - eslint --fix --quiet --cache || true

@@ -1,0 +1,20 @@
+mutation CreateTrainingSession($trainingSession: TrainingSessionInput!) {
+  createTrainingSession(trainingSession: $trainingSession) {
+    ...TrainingSession
+  }
+}
+
+mutation UpdateTrainingSession(
+  $id: ID!
+  $trainingSession: TrainingSessionInput!
+) {
+  updateTrainingSession(id: $id, trainingSession: $trainingSession) {
+    ...TrainingSession
+  }
+}
+
+mutation DeleteTrainingSession($id: ID!) {
+  deleteTrainingSession(id: $id) {
+    ...TrainingSession
+  }
+}

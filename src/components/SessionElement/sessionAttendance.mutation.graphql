@@ -1,0 +1,17 @@
+mutation ToggleTrainingSessionAttendance($id: ID!) {
+  toggleTrainingSessionAttendance(id: $id) {
+    ...TrainingSession
+  }
+}
+
+mutation ToggleFixtureAvailability($id: ID!) {
+  toggleFixtureAvailability(id: $id) {
+    ...Fixture
+  }
+}
+
+mutation ToggleFixturePlaying($id: ID!, $user: ID!) {
+  toggleFixturePlaying(id: $id, user: $user) {
+    ...Fixture
+  }
+}

@@ -1,0 +1,11 @@
+mutation DeleteTrainingSession($id: ID!) {
+  deleteTrainingSession(id: $id) {
+    ...TrainingSession
+  }
+}
+
+mutation DeleteFixture($id: ID!) {
+  deleteFixture(id: $id) {
+    ...Fixture
+  }
+}

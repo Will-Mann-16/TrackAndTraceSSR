@@ -1,0 +1,11 @@
+query Teams {
+  teams {
+    ...TeamWithMembers
+  }
+}
+
+query Team($id: ID, $slug: String) {
+  team(id: $id, slug: $slug) {
+    ...FullTeam
+  }
+}

@@ -1,0 +1,17 @@
+mutation CreateFixture($fixture: FixtureInput!) {
+  createFixture(fixture: $fixture) {
+    ...Fixture
+  }
+}
+
+mutation UpdateFixture($id: ID!, $fixture: FixtureInput!) {
+  updateFixture(id: $id, fixture: $fixture) {
+    ...Fixture
+  }
+}
+
+mutation DeleteFixture($id: ID!) {
+  deleteFixture(id: $id) {
+    ...Fixture
+  }
+}

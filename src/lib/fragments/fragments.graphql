@@ -1,0 +1,121 @@
+fragment User on User {
+  id
+  name
+  email
+  phoneNumber
+}
+
+fragment TrainingSession on TrainingSession {
+  id
+  start
+  end
+  title
+  description
+  attending {
+    ...User
+  }
+  public
+}
+
+fragment Fixture on Fixture {
+  id
+  start
+  description
+  location
+  opponent
+  players {
+    ...FixturePlayerWithUser
+  }
+}
+
+fragment Session on Session {
+  id
+  start
+  description
+  ... on Fixture {
+    ...Fixture
+  }
+  ... on TrainingSession {
+    ...TrainingSession
+  }
+}
+
+fragment SessionWithTeam on Session {
+  ...Session
+  team {
+    ...Team
+  }
+}
+
+fragment FixturePlayer on FixturePlayer {
+  id
+  isPlaying
+}
+
+fragment FixturePlayerWithUser on FixturePlayer {
+  ...FixturePlayer
+  user {
+    ...User
+  }
+}
+
+fragment Team on Team {
+  id
+  name
+  slug
+  bio
+}
+
+fragment TeamMember on TeamMember {
+  id
+  status
+}
+
+fragment TeamMemberWithUser on TeamMember {
+  ...TeamMember
+  user {
+    ...User
+  }
+}
+
+fragment TeamMemberWithTeam on TeamMember {
+  ...TeamMember
+  team {
+    ...Team
+  }
+}
+
+fragment TeamWithMembers on Team {
+  ...Team
+  members {
+    ...TeamMemberWithUser
+  }
+}
+
+fragment TeamWithSessions on Team {
+  ...Team
+  sessions {
+    ...SessionWithTeam
+  }
+}
+
+fragment FullTeam on Team {
+  ...Team
+  members {
+    ...TeamMemberWithUser
+  }
+  sessions {
+    ...SessionWithTeam
+  }
+}
+
+fragment FullUser on User {
+  ...User
+  isAdmin
+  teams {
+    ...Team
+  }
+  sessions {
+    ...SessionWithTeam
+  }
+}

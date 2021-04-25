@@ -1,0 +1,17 @@
+mutation JoinTeam($team: ID!) {
+  joinTeam(team: $team) {
+    ...TeamMemberWithUser
+  }
+}
+
+mutation ApproveTeamMember($team: ID!, $user: ID!) {
+  approveTeamMember(team: $team, user: $user) {
+    ...TeamMember
+  }
+}
+
+mutation SetTeamCaptain($team: ID!, $user: ID!) {
+  setTeamCaptain(team: $team, user: $user) {
+    ...TeamMember
+  }
+}
