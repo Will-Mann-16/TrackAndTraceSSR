@@ -8,6 +8,9 @@ import {
 import { UpdateUserMutationVariables } from "src/components/EditUser/updateUser.mutation.generated";
 import { Context } from "./context";
 import { DateTime } from "luxon";
+import { PhoneNumberFormat, PhoneNumberUtil } from "google-libphonenumber";
+
+const phoneUtil = PhoneNumberUtil.getInstance();
 
 export default {
   Query: {
@@ -22,14 +25,20 @@ export default {
   Mutation: {
     async updateUser(
       parent: unknown,
-      { user }: UpdateUserMutationVariables,
+      { user: { phoneNumber, ...user } }: UpdateUserMutationVariables,
       context: Context
     ): Promise<User> {
       return context.prisma.user.update({
         where: {
           id: context.user.id,
         },
-        data: { ...user },
+        data: {
+          ...user,
+          phoneNumber: phoneUtil.format(
+            phoneUtil.parse(phoneNumber, "GB"),
+            PhoneNumberFormat.INTERNATIONAL
+          ),
+        },
       });
     },
   },
