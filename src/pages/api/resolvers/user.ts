@@ -93,20 +93,29 @@ export default {
       });
       const trainingSessions = await prisma.trainingSession.findMany({
         where: {
-          team: {
-            members: {
-              some: {
-                user: {
-                  id: {
-                    equals: parent.id,
+          OR: [
+            {
+              team: {
+                members: {
+                  some: {
+                    user: {
+                      id: {
+                        equals: parent.id,
+                      },
+                    },
+                    status: {
+                      not: TeamMemberStatus.APPLIED,
+                    },
                   },
-                },
-                status: {
-                  not: TeamMemberStatus.APPLIED,
                 },
               },
             },
-          },
+            {
+              public: {
+                equals: true,
+              },
+            },
+          ],
           start: {
             gte: DateTime.local().startOf("day").toJSDate(),
           },
