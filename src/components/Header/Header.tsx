@@ -42,6 +42,7 @@ export default function Header() {
       alignItems='stretch'
       justifyContent='flex-start'
       bg='primary'
+      color='white'
     >
       <Flex justify='space-between' align='center' p={4}>
         <Heading fontSize='xl'>LUU Sport Track &amp; Trace</Heading>
