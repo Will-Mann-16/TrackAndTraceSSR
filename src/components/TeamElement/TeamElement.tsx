@@ -56,7 +56,6 @@ import {
   useJoinTeamMutation,
   useSetTeamCaptainMutation,
 } from "./teamMembers.mutation.generated";
-import { useTeamSessionsQuery } from "./teamSessions.query.generated";
 
 interface TeamElementProps {
   team: TeamFragment | TeamWithMembersFragment | FullTeamFragment;
@@ -70,10 +69,10 @@ export default function TeamElement({
   const { user } = useUser();
   switch (type) {
     case "simple":
-      var [team, forceUpdate] = useCachedFragment<TeamFragment>({
-        defaultValue: defaultTeam,
-        fragment: TeamFragmentDoc,
-        fragmentName: "Team",
+      var [team, forceUpdate] = useCachedFragment<TeamWithMembersFragment>({
+        defaultValue: defaultTeam as TeamWithMembersFragment,
+        fragment: TeamWithMembersFragmentDoc,
+        fragmentName: "TeamWithMembers",
       });
 
       return (

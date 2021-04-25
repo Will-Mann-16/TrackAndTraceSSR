@@ -21,6 +21,7 @@ import { Session, Team } from "src/lib/graphql/types";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import UserElement from "src/components/UserElement";
 import Head from "next/head";
+import { SessionWithTeamFragment } from "src/lib/fragments/fragments.generated";
 
 export default function HomePage() {
   const { loading, error, data } = useUserDisplayQuery();
@@ -45,7 +46,7 @@ export default function HomePage() {
                 {data?.user.sessions?.map((session) => (
                   <SessionElement
                     type='simple'
-                    session={session as Session}
+                    session={session as SessionWithTeamFragment}
                     key={session.id}
                   />
                 ))}
