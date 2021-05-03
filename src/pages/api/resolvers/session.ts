@@ -278,23 +278,29 @@ export default {
             id: {
               equals: id,
             },
-            public: {
-              equals: true,
-            },
-            team: {
-              members: {
-                some: {
-                  status: {
-                    not: TeamMemberStatus.APPLIED,
-                  },
-                  user: {
-                    id: {
-                      equals: user.id,
+            OR: [
+              {
+                public: {
+                  equals: true,
+                },
+              },
+              {
+                team: {
+                  members: {
+                    some: {
+                      status: {
+                        not: TeamMemberStatus.APPLIED,
+                      },
+                      user: {
+                        id: {
+                          equals: user.id,
+                        },
+                      },
                     },
                   },
                 },
               },
-            },
+            ],
           },
         })) === 0
       ) {
