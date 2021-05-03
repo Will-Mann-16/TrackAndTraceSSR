@@ -1,6 +1,7 @@
 import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { ApolloServer, AuthenticationError } from "apollo-server-micro";
 import { NextApiRequest, NextApiResponse } from "next";
+import { withSentry } from "@sentry/nextjs";
 import prisma from "src/lib/prisma";
 import typeDefs from "./typeDefs";
 import resolvers from "./resolvers";
@@ -28,4 +29,4 @@ export const config = {
   },
 };
 
-export default apolloServer.createHandler({ path: "/api/graphql" });
+export default withSentry(apolloServer.createHandler({ path: "/api/graphql" }));

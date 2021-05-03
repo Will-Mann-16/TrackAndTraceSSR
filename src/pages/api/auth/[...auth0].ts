@@ -4,6 +4,7 @@ import {
   handleCallback,
   handleProfile,
 } from "@auth0/nextjs-auth0";
+import { setUser } from "@sentry/nextjs";
 import prisma from "../../../lib/prisma";
 
 async function afterCallback(req, res, session, state) {
@@ -28,18 +29,22 @@ async function afterCallback(req, res, session, state) {
 }
 
 async function afterRefetch(req, res, session) {
+  const user = await prisma.user.findFirst({
+    where: {
+      auth0Id: session.user.sub,
+    },
+    include: {
+      teams: true,
+      fixtures: false,
+      trainingSessions: false,
+    },
+  });
+
+  setUser({ email: user.email, id: user.id });
+
   return {
     ...session,
-    user: await prisma.user.findFirst({
-      where: {
-        auth0Id: session.user.sub,
-      },
-      include: {
-        teams: true,
-        fixtures: false,
-        trainingSessions: false,
-      },
-    }),
+    user,
   };
 }
 
