@@ -265,7 +265,7 @@ function TrainingSessionModal({
         fragment: TeamWithMembersFragmentDoc,
         fragmentName: "TeamWithMembers",
         id: client.cache.identify(session.team),
-      }) || session.team,
+      }) || (session.team as TeamWithMembersFragment),
     [session]
   );
 
