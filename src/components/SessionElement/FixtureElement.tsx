@@ -289,7 +289,7 @@ function FixtureModal({
         fragment: TeamWithMembersFragmentDoc,
         fragmentName: "TeamWithMembers",
         id: client.cache.identify(session.team),
-      }),
+      }) || session.team,
     [session]
   );
 
@@ -311,7 +311,7 @@ function FixtureModal({
   const canEdit = useMemo<boolean>(
     () =>
       user.isAdmin ||
-      team.members.some(
+      team?.members?.some(
         (e) => e.user.id === user.id && e.status === TeamMemberStatus.Captain
       ),
     [user, team]

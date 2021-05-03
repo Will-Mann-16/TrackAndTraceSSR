@@ -223,7 +223,7 @@ export function TrainingSessionElement({
           </Flex>
         );
     }
-  }, []);
+  }, [session, type]);
 
   return (
     <>
@@ -265,7 +265,7 @@ function TrainingSessionModal({
         fragment: TeamWithMembersFragmentDoc,
         fragmentName: "TeamWithMembers",
         id: client.cache.identify(session.team),
-      }),
+      }) || session.team,
     [session]
   );
 
@@ -287,7 +287,7 @@ function TrainingSessionModal({
   const canEdit = useMemo<boolean>(
     () =>
       user.isAdmin ||
-      team.members.some(
+      team?.members?.some(
         (e) => e.user.id === user.id && e.status === TeamMemberStatus.Captain
       ),
     [user, team]

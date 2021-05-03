@@ -278,6 +278,9 @@ export default {
             id: {
               equals: id,
             },
+            public: {
+              equals: true,
+            },
             team: {
               members: {
                 some: {
