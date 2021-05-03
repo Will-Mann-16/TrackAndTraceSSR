@@ -45,7 +45,7 @@ export default function Header() {
       color='white'
     >
       <Flex justify='space-between' align='center' p={4}>
-        <Heading fontSize='xl'>LUU Sport Track &amp; Trace</Heading>
+        <Heading fontSize='xl'>LUUMHC Track &amp; Trace</Heading>
         {user && (
           <>
             <IconButton

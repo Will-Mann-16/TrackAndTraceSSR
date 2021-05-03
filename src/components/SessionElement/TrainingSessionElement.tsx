@@ -46,6 +46,7 @@ import {
 } from "src/lib/generateSpreadsheet";
 import XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { ReactNode } from "react";
 
 interface TrainingSessionElement {
   session: SessionWithTeam_TrainingSession_Fragment;
@@ -89,76 +90,77 @@ export function TrainingSessionElement({
       },
     })
   );
-  switch (type) {
-    case "simple":
-      return (
-        <Flex
-          opacity={
-            DateTime.fromISO(session.start) >= DateTime.local().startOf("day")
-              ? 1
-              : 0.8
-          }
-          alignItems='center'
-          rounded='xl'
-          cursor='pointer'
-          _hover={{
-            bg: useColorModeValue("gray.400", "gray.600"),
-          }}
-          py={1}
-          px={2}
-          onClick={() => router.push(`/teams/${session.team.slug}`)}
-          justify='space-between'
-          transitionDuration='0.2s'
-        >
+
+  const trainingSessionComponent = useMemo<ReactNode>(() => {
+    switch (type) {
+      case "simple":
+        return (
           <Flex
-            flexGrow={1}
-            justify='space-between'
-            flexDir={{ base: "column", md: "row" }}
-            mr={2}
-          >
-            <Box>
-              <Text fontSize='sm'>{session.title}</Text>
-            </Box>
-            <Box textAlign='right'>
-              <Text fontSize='sm'>
-                {DateTime.fromISO(session.start).toFormat("ccc dd/LL HH:mm")} -{" "}
-                {DateTime.fromISO(session.end).toFormat("HH:mm")}
-              </Text>
-              <Text fontSize='sm' color='gray'>
-                {session.team.name}
-              </Text>
-            </Box>
-          </Flex>
-          <Button
-            flexShrink={0}
-            flexGrow={0}
-            size='sm'
-            colorScheme={
-              session.attending.some((e) => e.id === user.id)
-                ? "green"
-                : undefined
+            opacity={
+              DateTime.fromISO(session.start) >= DateTime.local().startOf("day")
+                ? 1
+                : 0.8
             }
-            onClick={async (e) => {
-              e.stopPropagation();
-              try {
-                await toggleTrainingAttendance();
-                forceUpdate();
-              } catch (e) {
-                toast({
-                  status: "error",
-                  title: "Error",
-                  description: e.message,
-                });
-              }
+            alignItems='center'
+            rounded='xl'
+            cursor='pointer'
+            _hover={{
+              bg: useColorModeValue("gray.400", "gray.600"),
             }}
+            py={1}
+            px={2}
+            onClick={onOpen}
+            justify='space-between'
+            transitionDuration='0.2s'
           >
-            Attend
-          </Button>
-        </Flex>
-      );
-    case "full":
-      return (
-        <>
+            <Flex
+              flexGrow={1}
+              justify='space-between'
+              flexDir={{ base: "column", md: "row" }}
+              mr={2}
+            >
+              <Box>
+                <Text fontSize='sm'>{session.title}</Text>
+              </Box>
+              <Box textAlign='right'>
+                <Text fontSize='sm'>
+                  {DateTime.fromISO(session.start).toFormat("ccc dd/LL HH:mm")}{" "}
+                  - {DateTime.fromISO(session.end).toFormat("HH:mm")}
+                </Text>
+                <Text fontSize='sm' color='gray'>
+                  {session.team.name}
+                </Text>
+              </Box>
+            </Flex>
+            <Button
+              flexShrink={0}
+              flexGrow={0}
+              size='sm'
+              colorScheme={
+                session.attending.some((e) => e.id === user.id)
+                  ? "green"
+                  : undefined
+              }
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  await toggleTrainingAttendance();
+                  forceUpdate();
+                } catch (e) {
+                  toast({
+                    status: "error",
+                    title: "Error",
+                    description: e.message,
+                  });
+                }
+              }}
+            >
+              Attend
+            </Button>
+          </Flex>
+        );
+      case "full":
+        return (
           <Flex
             opacity={
               DateTime.fromISO(session.start) >= DateTime.local().startOf("day")
@@ -219,16 +221,22 @@ export function TrainingSessionElement({
               Attend
             </Button>
           </Flex>
-          <TrainingSessionModal
-            session={session}
-            forceUpdate={forceUpdate}
-            forceTeamUpdate={forceTeamUpdate}
-            isOpen={isOpen}
-            onClose={onClose}
-          />
-        </>
-      );
-  }
+        );
+    }
+  }, []);
+
+  return (
+    <>
+      {trainingSessionComponent}
+      <TrainingSessionModal
+        session={session}
+        forceUpdate={forceUpdate}
+        forceTeamUpdate={forceTeamUpdate}
+        isOpen={isOpen}
+        onClose={onClose}
+      />
+    </>
+  );
 }
 interface TrainingSessionModalProps {
   session: SessionWithTeam_TrainingSession_Fragment;

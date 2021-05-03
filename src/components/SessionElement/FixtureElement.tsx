@@ -93,82 +93,87 @@ export function FixtureElement({
       },
     })
   );
-  switch (type) {
-    case "simple":
-      return (
-        <Flex
-          opacity={
-            DateTime.fromISO(session.start) >= DateTime.local().startOf("day")
-              ? 1
-              : 0.8
-          }
-          alignItems='center'
-          rounded='xl'
-          cursor='pointer'
-          _hover={{
-            bg: useColorModeValue("gray.400", "gray.600"),
-          }}
-          py={1}
-          px={2}
-          onClick={() => router.push(`/teams/${session.team.slug}`)}
-          justify='space-between'
-          transitionDuration='0.2s'
-        >
+
+  const fixtureComponent = useMemo(() => {
+    switch (type) {
+      case "simple":
+        return (
           <Flex
-            flexGrow={1}
-            justify='space-between'
-            flexDir={{ base: "column", md: "row" }}
-            mr={2}
-          >
-            <Box>
-              <Text fontSize='sm'>
-                {session.team.name} vs {session.opponent}
-              </Text>
-            </Box>
-            <Box textAlign='right'>
-              <Text>
-                {DateTime.fromISO(session.start).toFormat("ccc dd/LL HH:mm")}
-              </Text>
-              <Text color='gray'>{session.location}</Text>
-            </Box>
-          </Flex>
-          <Button
-            flexShrink={0}
-            flexGrow={0}
-            size='sm'
-            disabled={session.players.some(
-              (e) => e.user.id === user.id && e.isPlaying
-            )}
-            colorScheme={
-              session.players.some((e) => e.user.id === user.id && e.isPlaying)
-                ? "green"
-                : session.players.some((e) => e.user.id === user.id)
-                ? "blue"
-                : undefined
+            opacity={
+              DateTime.fromISO(session.start) >= DateTime.local().startOf("day")
+                ? 1
+                : 0.8
             }
-            onClick={async (e) => {
-              e.stopPropagation();
-              try {
-                await toggleFixtureAvailability();
-                forceUpdate();
-              } catch (e) {
-                toast({
-                  status: "error",
-                  title: "Error",
-                  description: e.message,
-                });
-              }
+            alignItems='center'
+            rounded='xl'
+            cursor='pointer'
+            _hover={{
+              bg: useColorModeValue("gray.400", "gray.600"),
             }}
+            py={1}
+            px={2}
+            onClick={onOpen}
+            justify='space-between'
+            transitionDuration='0.2s'
           >
-            {session.players.some((e) => e.user.id === user.id && e.isPlaying)
-              ? "Playing"
-              : "Can Play"}
-          </Button>
-        </Flex>
-      );
-    case "full":
-      return (
-        <>
+            <Flex
+              flexGrow={1}
+              justify='space-between'
+              flexDir={{ base: "column", md: "row" }}
+              mr={2}
+            >
+              <Box>
+                <Text fontSize='sm'>
+                  {session.team.name} vs {session.opponent}
+                </Text>
+              </Box>
+              <Box textAlign='right'>
+                <Text fontSize='sm'>
+                  {DateTime.fromISO(session.start).toFormat("ccc dd/LL HH:mm")}
+                </Text>
+                <Text fontSize='sm' color='gray'>
+                  {session.location}
+                </Text>
+              </Box>
+            </Flex>
+            <Button
+              flexShrink={0}
+              flexGrow={0}
+              size='sm'
+              disabled={session.players.some(
+                (e) => e.user.id === user.id && e.isPlaying
+              )}
+              colorScheme={
+                session.players.some(
+                  (e) => e.user.id === user.id && e.isPlaying
+                )
+                  ? "green"
+                  : session.players.some((e) => e.user.id === user.id)
+                  ? "blue"
+                  : undefined
+              }
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  await toggleFixtureAvailability();
+                  forceUpdate();
+                } catch (e) {
+                  toast({
+                    status: "error",
+                    title: "Error",
+                    description: e.message,
+                  });
+                }
+              }}
+            >
+              {session.players.some((e) => e.user.id === user.id && e.isPlaying)
+                ? "Playing"
+                : "Can Play"}
+            </Button>
+          </Flex>
+        );
+      case "full":
+        return (
           <Flex
             opacity={
               DateTime.fromISO(session.start) >= DateTime.local().startOf("day")
@@ -240,16 +245,22 @@ export function FixtureElement({
                 : "Can Play"}
             </Button>
           </Flex>
-          <FixtureModal
-            session={session}
-            forceUpdate={forceUpdate}
-            forceTeamUpdate={forceTeamUpdate}
-            isOpen={isOpen}
-            onClose={onClose}
-          />
-        </>
-      );
-  }
+        );
+    }
+  }, [session, type]);
+
+  return (
+    <>
+      {fixtureComponent}
+      <FixtureModal
+        session={session}
+        forceUpdate={forceUpdate}
+        forceTeamUpdate={forceTeamUpdate}
+        isOpen={isOpen}
+        onClose={onClose}
+      />
+    </>
+  );
 }
 interface FixtureModalProps {
   session: SessionWithTeam_Fixture_Fragment;

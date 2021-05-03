@@ -97,7 +97,7 @@ export default function EditFixture({
       cache.writeFragment({
         data: data.updateFixture,
         fragment: FixtureFragmentDoc,
-        fragmentName: "FixtureFragment",
+        fragmentName: "Fixture",
       });
     },
   }));
