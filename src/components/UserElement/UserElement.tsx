@@ -104,7 +104,7 @@ export default function UserElement({
         borderRadius='lg'
         bg={useColorModeValue("white", "gray.700")}
         _hover={{
-          bg: isExpandable && useColorModeValue("gray.400", "gray.600"),
+          bg: isExpandable && useColorModeValue("gray.200", "gray.600"),
         }}
         transitionDuration='0.3s'
         minH={8}
