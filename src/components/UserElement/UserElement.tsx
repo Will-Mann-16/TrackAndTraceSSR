@@ -15,6 +15,8 @@ import {
   Tag,
   useDisclosure,
   Flex,
+  useColorMode,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { ReactNode, useMemo } from "react";
 import { useCachedFragment } from "src/lib/apollo";
@@ -45,7 +47,7 @@ export default function UserElement({
   const element = useMemo<ReactNode>(() => {
     switch (type) {
       case "simple":
-        return <Text>{user.name}</Text>;
+        return <Text ps={1}>{user.name}</Text>;
       case "full":
         return (
           <Stack my={4}>
@@ -99,6 +101,12 @@ export default function UserElement({
         justify='space-between'
         onClick={isExpandable && onOpen}
         cursor={isExpandable && "pointer"}
+        borderRadius='lg'
+        bg={useColorModeValue("white", "gray.700")}
+        _hover={{
+          bg: isExpandable && useColorModeValue("gray.400", "gray.600"),
+        }}
+        transitionDuration='0.3s'
         minH={8}
       >
         {element}

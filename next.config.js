@@ -3,11 +3,15 @@
 // https://nextjs.org/docs/api-reference/next.config.js/introduction
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-const { withSentryConfig } = require('@sentry/nextjs');
+const { withSentryConfig } = require("@sentry/nextjs");
+const withPWA = require("next-pwa");
 
-const moduleExports = {
+const moduleExports = withPWA({
   // Your existing module.exports
-};
+  pwa: {
+    dest: "public",
+  },
+});
 
 const SentryWebpackPluginOptions = {
   // Additional config options for the Sentry Webpack plugin. Keep in mind that

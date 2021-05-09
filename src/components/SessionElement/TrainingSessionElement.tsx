@@ -27,6 +27,7 @@ import {
   TeamWithMembersFragment,
   TeamWithMembersFragmentDoc,
   TrainingSessionFragmentDoc,
+  UserFragment,
 } from "src/lib/fragments/fragments.generated";
 import { truncate } from "lodash";
 import { useMemo, useRef, useState } from "react";
@@ -47,6 +48,9 @@ import {
 import XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { ReactNode } from "react";
+import Table from "../Table";
+import { Column } from "react-table";
+import useMeasure from "react-use-measure";
 
 interface TrainingSessionElement {
   session: SessionWithTeam_TrainingSession_Fragment;
@@ -115,14 +119,14 @@ export function TrainingSessionElement({
           >
             <Flex
               flexGrow={1}
-              justify='space-between'
+              justify={{ base: "flex-start", md: "space-between" }}
               flexDir={{ base: "column", md: "row" }}
               mr={2}
             >
               <Box>
                 <Text fontSize='sm'>{session.title}</Text>
               </Box>
-              <Box textAlign='right'>
+              <Box textAlign={{ base: "left", md: "right" }}>
                 <Text fontSize='sm'>
                   {DateTime.fromISO(session.start).toFormat("ccc dd/LL HH:mm")}{" "}
                   - {DateTime.fromISO(session.end).toFormat("HH:mm")}
@@ -189,7 +193,7 @@ export function TrainingSessionElement({
                 <Text>{session.title}</Text>
                 <Text color='gray'>{description}</Text>
               </Box>
-              <Box textAlign='right'>
+              <Box textAlign={{ base: "left", md: "right" }}>
                 <Text>
                   {DateTime.fromISO(session.start).toFormat("ccc LLL d, HH:mm")}{" "}
                   - {DateTime.fromISO(session.end).toFormat("HH:mm")}
@@ -284,6 +288,18 @@ function TrainingSessionModal({
     },
   }));
 
+  const [playerRef, playerBounds] = useMeasure();
+  const playerColumns = useMemo(() => {
+    const columns: Column<UserFragment>[] = [
+      {
+        Header: "Name",
+        accessor: "name",
+        width: playerBounds.width,
+      },
+    ];
+    return columns;
+  }, [user, playerBounds.width]);
+
   const canEdit = useMemo<boolean>(
     () =>
       user.isAdmin ||
@@ -319,12 +335,17 @@ function TrainingSessionModal({
                   - {DateTime.fromISO(session.end).toFormat("HH:mm")}
                 </Text>
                 <Text mb={4}>{session.description}</Text>
-                <Text fontWeight='semibold'>Attending:</Text>
-                <Stack mb={4}>
-                  {session.attending.map((user) => (
-                    <UserElement type='simple' user={user} key={user.id} />
-                  ))}
-                </Stack>
+                <Table<UserFragment>
+                  tableRef={playerRef}
+                  sort
+                  size='sm'
+                  data={session.attending}
+                  caption='Attending'
+                  columns={playerColumns}
+                  getRowId={(row) => row.id}
+                  layout='flex'
+                  height='md'
+                />
               </>
             )}
           </ModalBody>

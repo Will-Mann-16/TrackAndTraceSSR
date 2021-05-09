@@ -1,5 +1,6 @@
 import {
   Fixture,
+  Prisma,
   Team,
   TeamMember,
   TeamMemberStatus,
