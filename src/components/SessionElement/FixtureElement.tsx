@@ -111,7 +111,7 @@ export function FixtureElement({
             rounded='xl'
             cursor='pointer'
             _hover={{
-              bg: useColorModeValue("gray.400", "gray.600"),
+              bg: useColorModeValue("gray.200", "gray.600"),
             }}
             py={1}
             px={2}
@@ -187,7 +187,7 @@ export function FixtureElement({
             rounded='xl'
             cursor='pointer'
             _hover={{
-              bg: useColorModeValue("gray.400", "gray.600"),
+              bg: useColorModeValue("gray.200", "gray.600"),
             }}
             py={2}
             px={3}

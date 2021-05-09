@@ -161,7 +161,7 @@ export default function TeamElement({
               !!status || user.isAdmin
                 ? {
                     boxShadow: "3xl",
-                    bg: useColorModeValue("gray.400", "gray.600"),
+                    bg: useColorModeValue("gray.200", "gray.600"),
                   }
                 : {}
             }
