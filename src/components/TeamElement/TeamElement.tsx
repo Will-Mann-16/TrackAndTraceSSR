@@ -1,4 +1,3 @@
-import { useApolloClient } from "@apollo/client";
 import {
   Text,
   Box,
@@ -27,14 +26,17 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  HStack,
 } from "@chakra-ui/react";
+import { DateTime } from "luxon";
 import { useRouter } from "next/router";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FaEdit, FaPlus } from "react-icons/fa";
 import { useCachedFragment } from "src/lib/apollo";
 import {
   FullTeamFragment,
   FullTeamFragmentDoc,
+  SessionFragment,
   TeamFragment,
   TeamFragmentDoc,
   TeamMemberFragmentDoc,
@@ -49,6 +51,7 @@ import EditFixture from "../EditFixture";
 import EditTeam from "../EditTeam";
 import { useDeleteTeamMutation } from "../EditTeam/editTeam.mutation.generated";
 import EditTrainingSession from "../EditTrainingSession";
+import List from "../List/List";
 import SessionElement from "../SessionElement";
 import UserElement from "../UserElement";
 import {
@@ -158,7 +161,7 @@ export default function TeamElement({
               !!status || user.isAdmin
                 ? {
                     boxShadow: "3xl",
-                    bg: useColorModeValue("whiteAlpha.100", "gray.600"),
+                    bg: useColorModeValue("gray.400", "gray.600"),
                   }
                 : {}
             }
@@ -185,13 +188,16 @@ export default function TeamElement({
               {team.name}
             </Text>
             {captains.length > 0 && (
-              <Stack flex={1}>
-                {captains.map(({ user }) => (
+              <List<TeamMemberWithUserFragment>
+                data={captains}
+                renderItem={({ user }) => (
                   <Text textAlign='center' key={user.id}>
                     {user.name}
                   </Text>
-                ))}
-              </Stack>
+                )}
+                emptyMessage={null}
+                flex={1}
+              />
             )}
             <Button
               colorScheme='green'
@@ -291,6 +297,7 @@ function TeamPage({ team: defaultTeam }: TeamPageProps) {
     fragment: FullTeamFragmentDoc,
     fragmentName: "FullTeam",
   });
+  const [showPast, setShowPast] = useState<boolean>(false);
 
   const { user } = useUser();
 
@@ -375,13 +382,14 @@ function TeamPage({ team: defaultTeam }: TeamPageProps) {
           bg={useColorModeValue("white", "gray.700")}
         >
           <Heading fontSize='xl'>Captains</Heading>
-          <Stack>
-            {team.members
-              .filter((e) => e.status === TeamMemberStatus.Captain)
-              .map(({ user: u, status }) => (
-                <UserElement type='full' user={u} key={u.id} />
-              ))}
-          </Stack>
+          <List<TeamMemberWithUserFragment>
+            data={team.members.filter(
+              (e) => e.status === TeamMemberStatus.Captain
+            )}
+            renderItem={({ user: u }) => (
+              <UserElement type='full' user={u} key={u.id} />
+            )}
+          />
         </Box>
         <Box
           p={4}
@@ -390,8 +398,8 @@ function TeamPage({ team: defaultTeam }: TeamPageProps) {
           bg={useColorModeValue("white", "gray.700")}
         >
           <Heading fontSize='xl'>Members</Heading>
-          <Stack>
-            {team.members
+          <List<TeamMemberWithUserFragment>
+            data={team.members
               .filter(
                 (e) =>
                   e.status !== TeamMemberStatus.Applied ||
@@ -402,21 +410,55 @@ function TeamPage({ team: defaultTeam }: TeamPageProps) {
                   ) ||
                   user.isAdmin
               )
-              .map(({ user: u, status }) => (
-                <UserElement
-                  type='simple'
-                  user={u}
-                  key={u.id}
-                  isExpandable
-                  accessory={
-                    status === TeamMemberStatus.Applied && isCaptain ? (
+              .sort((a, b) => {
+                if (a.status < b.status) return -1;
+                if (a.status > b.status) return 1;
+                if (a.user.name < b.user.name) return -1;
+                if (a.user.name > b.user.name) return 1;
+                return 0;
+              })}
+            renderItem={({ user: u, status }) => (
+              <UserElement
+                type='simple'
+                user={u}
+                key={u.id}
+                isExpandable
+                accessory={
+                  status === TeamMemberStatus.Applied && isCaptain ? (
+                    <Button
+                      size='sm'
+                      colorScheme='green'
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await approveTeamMember({
+                            variables: {
+                              team: team.id,
+                              user: u.id,
+                            },
+                          });
+                          forceUpdate();
+                        } catch (e) {
+                          toast({
+                            status: "error",
+                            title: "Error",
+                            description: e.message,
+                          });
+                        }
+                      }}
+                    >
+                      Approve
+                    </Button>
+                  ) : (
+                    user.isAdmin && (
                       <Button
+                        disabled={status === TeamMemberStatus.Captain}
                         size='sm'
-                        colorScheme='green'
+                        colorScheme='blue'
                         onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            await approveTeamMember({
+                            await setTeamCaptain({
                               variables: {
                                 team: team.id,
                                 user: u.id,
@@ -432,41 +474,14 @@ function TeamPage({ team: defaultTeam }: TeamPageProps) {
                           }
                         }}
                       >
-                        Approve
+                        Captain
                       </Button>
-                    ) : (
-                      user.isAdmin && (
-                        <Button
-                          disabled={status === TeamMemberStatus.Captain}
-                          size='sm'
-                          colorScheme='blue'
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              await setTeamCaptain({
-                                variables: {
-                                  team: team.id,
-                                  user: u.id,
-                                },
-                              });
-                              forceUpdate();
-                            } catch (e) {
-                              toast({
-                                status: "error",
-                                title: "Error",
-                                description: e.message,
-                              });
-                            }
-                          }}
-                        >
-                          Captain
-                        </Button>
-                      )
                     )
-                  }
-                />
-              ))}
-          </Stack>
+                  )
+                }
+              />
+            )}
+          />
         </Box>
       </SimpleGrid>
       <Box
@@ -478,66 +493,82 @@ function TeamPage({ team: defaultTeam }: TeamPageProps) {
       >
         <Flex align='center' justify='space-between'>
           <Heading fontSize='xl'>Sessions</Heading>
-          {isCaptain && (
-            <>
-              <Button
-                onClick={sessionDisclosure.onOpen}
-                colorScheme='blue'
-                leftIcon={<FaPlus />}
-              >
-                New
-              </Button>
-              <Modal
-                size='lg'
-                isOpen={sessionDisclosure.isOpen}
-                onClose={sessionDisclosure.onClose}
-              >
-                <ModalOverlay />
-                <ModalContent>
-                  <ModalHeader>Create new session</ModalHeader>
-                  <ModalBody>
-                    <Tabs isFitted>
-                      <TabList>
-                        <Tab>Training Session</Tab>
-                        <Tab>Fixture</Tab>
-                      </TabList>
-                      <TabPanels>
-                        <TabPanel>
-                          <EditTrainingSession
-                            team={team}
-                            onFinish={() => {
-                              forceUpdate();
-                              sessionDisclosure.onClose();
-                            }}
-                          />
-                        </TabPanel>
-                        <TabPanel>
-                          <EditFixture
-                            team={team}
-                            onFinish={() => {
-                              forceUpdate();
-                              sessionDisclosure.onClose();
-                            }}
-                          />
-                        </TabPanel>
-                      </TabPanels>
-                    </Tabs>
-                  </ModalBody>
-                </ModalContent>
-              </Modal>
-            </>
-          )}
+          <HStack>
+            <Button
+              variant={showPast ? "solid" : "outline"}
+              colorScheme='yellow'
+              onClick={() => setShowPast((past) => !past)}
+            >
+              Past
+            </Button>
+            {isCaptain && (
+              <>
+                <Button
+                  onClick={sessionDisclosure.onOpen}
+                  colorScheme='blue'
+                  leftIcon={<FaPlus />}
+                >
+                  New
+                </Button>
+                <Modal
+                  size='lg'
+                  isOpen={sessionDisclosure.isOpen}
+                  onClose={sessionDisclosure.onClose}
+                >
+                  <ModalOverlay />
+                  <ModalContent>
+                    <ModalHeader>Create new session</ModalHeader>
+                    <ModalBody>
+                      <Tabs isFitted>
+                        <TabList>
+                          <Tab>Training Session</Tab>
+                          <Tab>Fixture</Tab>
+                        </TabList>
+                        <TabPanels>
+                          <TabPanel>
+                            <EditTrainingSession
+                              team={team}
+                              onFinish={() => {
+                                forceUpdate();
+                                sessionDisclosure.onClose();
+                              }}
+                            />
+                          </TabPanel>
+                          <TabPanel>
+                            <EditFixture
+                              team={team}
+                              onFinish={() => {
+                                forceUpdate();
+                                sessionDisclosure.onClose();
+                              }}
+                            />
+                          </TabPanel>
+                        </TabPanels>
+                      </Tabs>
+                    </ModalBody>
+                  </ModalContent>
+                </Modal>
+              </>
+            )}
+          </HStack>
         </Flex>
-        <Stack my={2}>
-          {team.sessions.map((session) => (
+        <List<SessionFragment>
+          my={2}
+          data={team.sessions.filter(
+            ({ start }) =>
+              showPast ||
+              DateTime.fromISO(start).toMillis() >
+                DateTime.local().startOf("day").toMillis()
+          )}
+          renderItem={(session) => (
             <SessionElement
               session={session}
               type='full'
               key={session.id}
               forceUpdate={forceUpdate}
             />
-          ))}
-        </Stack>
+          )}
+        />
       </Box>
     </>
   );

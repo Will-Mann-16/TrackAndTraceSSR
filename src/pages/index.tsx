@@ -3,7 +3,7 @@ import {
   Container,
   Heading,
   HStack,
-  List,
+  List as ChakraList,
   ListIcon,
   ListItem,
   SimpleGrid,
@@ -21,7 +21,11 @@ import { Session, Team } from "src/lib/graphql/types";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import UserElement from "src/components/UserElement";
 import Head from "next/head";
-import { SessionWithTeamFragment } from "src/lib/fragments/fragments.generated";
+import {
+  SessionWithTeamFragment,
+  TeamFragment,
+} from "src/lib/fragments/fragments.generated";
+import List from "src/components/List/List";
 
 export default function HomePage() {
   const { loading, error, data } = useUserDisplayQuery();
@@ -42,27 +46,38 @@ export default function HomePage() {
           >
             <Stack>
               <Heading fontSize='xl'>Upcoming Sessions</Heading>
-              <Stack>
-                {data?.user.sessions?.map((session) => (
+              <List<SessionWithTeamFragment>
+                isLoading={loading || !data?.user.sessions}
+                error={error}
+                h='xs'
+                renderItem={(session) => (
                   <SessionElement
                     type='simple'
                     session={session as SessionWithTeamFragment}
                     key={session.id}
                   />
-                ))}
-              </Stack>
+                )}
+                data={data?.user.sessions}
+              />
             </Stack>
           </Box>
           <Box
             p={4}
             rounded='lg'
             boxShadow='2xl'
+            minH='xs'
             bg={useColorModeValue("white", "gray.700")}
           >
             <Heading fontSize='xl'>Your Teams</Heading>
-            {data?.user.teams.map((team) => (
-              <TeamElement type='simple' team={team as Team} key={team.id} />
-            ))}
+            <List<TeamFragment>
+              isLoading={loading || !data?.user.teams}
+              error={error}
+              h='xs'
+              renderItem={(team) => (
+                <TeamElement type='simple' team={team} key={team.id} />
+              )}
+              data={data?.user.teams}
+            />
           </Box>
           <Box
             p={4}
@@ -86,6 +101,7 @@ export default function HomePage() {
             p={4}
             rounded='lg'
             boxShadow='2xl'
+            minH='xs'
             bg={useColorModeValue("white", "gray.700")}
           >
             <Stack spacing={4}>
@@ -96,17 +112,17 @@ export default function HomePage() {
                 <b>must</b> inform your COVID officer.
               </Text>
               <Heading fontSize='md'>Your COVID Officers:</Heading>
-              <List spacing={3}>
+              <ChakraList spacing={3}>
                 <ListItem>
-                  <HStack>
+                  <Stack direction={{ base: "column", md: "row" }}>
                     <Tag>Hockey (M)</Tag>
                     <Text>Henry Johnson</Text>
                     <Link href='mailto:ee18hj@leeds.ac.uk' color='green.300'>
                       ee18hj@leeds.ac.uk
                     </Link>
-                  </HStack>
+                  </Stack>
                 </ListItem>
-              </List>
+              </ChakraList>
             </Stack>
           </Box>
         </SimpleGrid>

@@ -50,6 +50,9 @@ import { useDeleteFixtureMutation } from "../EditFixture/editFixture.mutation.ge
 import XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { generateFixtureSpreadsheet, s2ab } from "src/lib/generateSpreadsheet";
+import Table from "../Table";
+import { Cell, Column } from "react-table";
+import useMeasure from "react-use-measure";
 
 interface FixtureElementProps {
   session: SessionWithTeam_Fixture_Fragment;
@@ -118,7 +121,7 @@ export function FixtureElement({
           >
             <Flex
               flexGrow={1}
-              justify='space-between'
+              justify={{ base: "flex-start", md: "space-between" }}
               flexDir={{ base: "column", md: "row" }}
               mr={2}
             >
@@ -127,7 +130,7 @@ export function FixtureElement({
                   {session.team.name} vs {session.opponent}
                 </Text>
               </Box>
-              <Box textAlign='right'>
+              <Box textAlign={{ base: "left", md: "right" }}>
                 <Text fontSize='sm'>
                   {DateTime.fromISO(session.start).toFormat("ccc dd/LL HH:mm")}
                 </Text>
@@ -204,11 +207,11 @@ export function FixtureElement({
                 </Text>{" "}
                 <Text color='gray'>{description}</Text>
               </Box>
-              <Box textAlign='right'>
+              <Box textAlign={{ base: "left", md: "right" }}>
                 <Text>
                   {DateTime.fromISO(session.start).toFormat("ccc LLL d, HH:mm")}
                 </Text>
-                <Text color='gray'>{session.location}</Text>
+                <Text color='gray.400'>{session.location}</Text>
               </Box>
             </Flex>
             <Button
@@ -317,6 +320,40 @@ function FixtureModal({
     [user, team]
   );
 
+  const [playerRef, playerBounds] = useMeasure();
+  const playerColumns = useMemo(() => {
+    const columns: Column<FixturePlayerWithUserFragment>[] = [
+      {
+        Header: "Name",
+        accessor: "user.name" as "user",
+        width: playerBounds.width,
+      },
+    ];
+
+    if (
+      user.isAdmin ||
+      team.members?.some(
+        (f) => f.user.id === user.id && f.status === TeamMemberStatus.Captain
+      )
+    ) {
+      columns[0].width = (columns[0].width as number) - 128;
+      columns.push({
+        Header: "Select",
+        id: "isPlaying",
+        Cell: ({ row }: Cell<FixturePlayerWithUserFragment>) => (
+          <IsPlayingButton
+            fixtureId={session.id}
+            player={row.original}
+            forceFixtureUpdate={forceUpdate}
+          />
+        ),
+        width: 128,
+      });
+    }
+
+    return columns;
+  }, [user, team, playerBounds.width]);
+
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -345,28 +382,26 @@ function FixtureModal({
                 </Text>
                 <Text color='gray'>{session.location}</Text>
                 <Text mb={4}>{session.description}</Text>
-                <Text fontWeight='semibold'>Players:</Text>
-                <Stack mb={4}>
-                  {session.players
-                    .filter(
-                      (e) =>
-                        e.isPlaying ||
-                        user.isAdmin ||
-                        team.members.some(
-                          (f) =>
-                            f.user.id === user.id &&
-                            f.status === TeamMemberStatus.Captain
-                        )
-                    )
-                    .map((player) => (
-                      <PlayerRow
-                        forceFixtureUpdate={forceUpdate}
-                        fixtureId={session.id}
-                        player={player}
-                        team={team}
-                      />
-                    ))}
-                </Stack>
+                <Table<FixturePlayerWithUserFragment>
+                  tableRef={playerRef}
+                  sort
+                  size='sm'
+                  data={session.players.filter(
+                    (e) =>
+                      e.isPlaying ||
+                      user.isAdmin ||
+                      team.members.some(
+                        (f) =>
+                          f.user.id === user.id &&
+                          f.status === TeamMemberStatus.Captain
+                      )
+                  )}
+                  caption='Players'
+                  columns={playerColumns}
+                  getRowId={(row) => row.id}
+                  layout='flex'
+                  height='md'
+                />
               </>
             )}
           </ModalBody>
@@ -478,19 +513,18 @@ function FixtureModal({
   );
 }
 
-interface PlayerRowProps {
+interface IsPlayingButton {
   fixtureId: string;
   player: FixturePlayerWithUserFragment;
-  team: TeamWithMembersFragment;
   forceFixtureUpdate: () => void;
 }
 
-function PlayerRow({
+function IsPlayingButton({
   fixtureId,
   player: defaultPlayer,
-  team,
   forceFixtureUpdate,
-}: PlayerRowProps) {
+  ...rest
+}: IsPlayingButton) {
   const [
     player,
     forceUpdate,
@@ -500,7 +534,6 @@ function PlayerRow({
     fragmentName: "FixturePlayerWithUser",
   });
 
-  const { user } = useUser();
   const toast = useToast();
 
   const [toggleFixturePlaying] = useToggleFixturePlayingMutation(() => ({
@@ -517,36 +550,25 @@ function PlayerRow({
     },
   }));
   return (
-    <UserElement
-      type='simple'
-      user={player.user}
-      key={player.user.id}
-      accessory={
-        (user.isAdmin ||
-          team.members.some(
-            (f) =>
-              f.user.id === user.id && f.status === TeamMemberStatus.Captain
-          )) && (
-          <Button
-            colorScheme={player.isPlaying ? "green" : undefined}
-            onClick={async () => {
-              try {
-                await toggleFixturePlaying();
-                forceUpdate();
-                forceFixtureUpdate();
-              } catch (e) {
-                toast({
-                  status: "error",
-                  title: "Error",
-                  description: e.message,
-                });
-              }
-            }}
-          >
-            Playing?
-          </Button>
-        )
-      }
-    />
+    <Button
+      size='sm'
+      colorScheme={player.isPlaying ? "green" : undefined}
+      onClick={async () => {
+        try {
+          await toggleFixturePlaying();
+          forceUpdate();
+          forceFixtureUpdate();
+        } catch (e) {
+          toast({
+            status: "error",
+            title: "Error",
+            description: e.message,
+          });
+        }
+      }}
+      {...rest}
+    >
+      Playing?
+    </Button>
   );
 }
